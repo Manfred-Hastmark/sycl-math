@@ -17,3 +17,5 @@ target_sources(sycl-math
 
 add_executable(samples samples/main.cpp)
 target_link_libraries(samples PRIVATE sycl-math)
+
+add_subdirectory(test)
