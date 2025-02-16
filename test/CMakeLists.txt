@@ -1,4 +1,4 @@
-add_executable(test-gemm test_gemm.cpp)
+add_executable(test-gemm test_matrix.cpp)
 add_test(NAME TestGemm COMMAND test-gemm)
 
 find_package(GTest)
