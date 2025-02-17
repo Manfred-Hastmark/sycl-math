@@ -94,39 +94,45 @@ public:
   const T *cdata() const { return m_matrix; }
 
   /**
+   * Get pointer to raw data
+   */
+  T *data() { return m_matrix; }
+
+  /**
+   * Matrix multiplication, does not allocate new memory
+   */
+  template <size_t Q>
+  void mul(const Matrix<T, N, Q> &in_mat, Matrix<T, M, Q> &out_mat) {
+    const auto *mat_a = m_matrix;
+    const auto *mat_b = in_mat.cdata();
+    auto *mat_c = out_mat.data();
+    constexpr size_t BLOCK_SIZE{32};
+    sycl::nd_range<2> range{sycl::range<2>(M, Q),
+                            sycl::range<2>(BLOCK_SIZE, BLOCK_SIZE)};
+    m_queue
+        ->submit([&](sycl::handler &cgh) {
+          cgh.parallel_for(range, [=](sycl::nd_item<2> iter) {
+            const auto m_idx = iter.get_global_id().get(0);
+            const auto q_idx = iter.get_global_id().get(1);
+            if (m_idx < M && q_idx < Q) {
+              T sum = 0;
+              for (size_t n_idx = 0; n_idx < N; n_idx++) {
+                sum += mat_a[(m_idx * N) + n_idx] * mat_b[(n_idx * Q) + q_idx];
+              }
+              mat_c[(m_idx * Q) + q_idx] = sum;
+            }
+          });
+        })
+        .wait();
+  }
+
+  /**
    * Matrix muliplication, tiled implementation, allocates new return matrix
    */
   template <size_t Q> Matrix<T, M, Q> operator*(const Matrix<T, N, Q> &mat) {
-    const auto *mat_a = m_matrix;
-    const auto *mat_b = mat.cdata();
-    T *mat_c = sycl::malloc_host<T>(M * Q, m_queue->get_context());
-    constexpr size_t BLOCK_SIZE{32};
-    m_queue
-        ->submit([&](sycl::handler &cgh) {
-          cgh.parallel_for(
-              sycl::range<2>{(M + BLOCK_SIZE - 1) / BLOCK_SIZE,
-                             (Q + BLOCK_SIZE - 1) / BLOCK_SIZE},
-              [=](sycl::id<2> idx) {
-                const auto mb_idx = idx[0];
-                const auto qb_idx = idx[1];
-                for (size_t m_idx = mb_idx * BLOCK_SIZE;
-                     m_idx < std::min((mb_idx + 1) * BLOCK_SIZE, M); m_idx++) {
-                  for (size_t n_idx = 0; n_idx < N; n_idx++) {
-                    for (size_t q_idx = qb_idx * BLOCK_SIZE;
-                         q_idx < std::min((qb_idx + 1) * BLOCK_SIZE, Q);
-                         q_idx++) {
-                      if (n_idx == 0) {
-                        mat_c[(m_idx * Q) + q_idx] = 0;
-                      }
-                      mat_c[(m_idx * Q) + q_idx] += mat_a[(m_idx * N) + n_idx] *
-                                                    mat_b[(n_idx * Q) + q_idx];
-                    }
-                  }
-                }
-              });
-        })
-        .wait();
-    return {m_queue, mat_c};
+    Matrix<T, M, Q> out_mat{m_queue};
+    mul(mat, out_mat);
+    return std::move(out_mat);
   }
 
   /**
