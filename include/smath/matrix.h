@@ -36,7 +36,11 @@ public:
   explicit Matrix(sycl::queue *queue)
       : m_queue(queue),
         m_matrix(sycl::malloc_host<T>(M * N, m_queue->get_context())) {
-    std::memset(m_matrix, 0, M * N * sizeof(T));
+    m_queue
+        ->submit([&](sycl::handler &cgh) {
+          cgh.memset(m_matrix, 0, M * N * sizeof(T));
+        })
+        .wait();
   };
 
   /**
@@ -55,7 +59,11 @@ public:
   Matrix(Matrix &other)
       : m_queue(other.m_queue),
         m_matrix(sycl::malloc_host<T>(M * N, m_queue->get_context())) {
-    std::memcpy(m_matrix, other.m_matrix, M * N * sizeof(T));
+    m_queue
+        ->submit([&](sycl::handler &cgh) {
+          cgh.memcpy(m_matrix, other.m_matrix, M * N * sizeof(T));
+        })
+        .wait();
   }
 
   /**
