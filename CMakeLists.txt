@@ -17,5 +17,6 @@ target_sources(sycl-math
 
 add_executable(samples samples/main.cpp)
 target_link_libraries(samples PRIVATE sycl-math)
+target_compile_options(samples PRIVATE --acpp-targets=omp)
 
 add_subdirectory(test)
