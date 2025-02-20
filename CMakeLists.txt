@@ -13,8 +13,11 @@ target_include_directories(sycl-math INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/inclu
 
 add_executable(samples samples/main.cpp)
 target_link_libraries(samples PRIVATE sycl-math)
-target_compile_options(samples PRIVATE --acpp-targets=omp)
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+if(TARGET_OMP STREQUAL "ON")
+    target_compile_options(samples PRIVATE --acpp-targets=omp -fopenmp=libgomp)
+endif()
+
+if(BUILD_TEST STREQUAL "ON")
     add_subdirectory(test)
 endif()
