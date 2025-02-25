@@ -10,6 +10,7 @@ set(CMAKE_CXX_COMPILER acpp)
 add_library(sycl-math INTERFACE)
 set_target_properties(sycl-math PROPERTIES CMAKE_CXX_STANDARD 17)
 target_include_directories(sycl-math INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_options(sycl-math INTERFACE -Wpedantic -Wall -Wextra -Werror -Wshadow -Wdeprecated -Wconversion)
 
 add_executable(samples samples/main.cpp)
 target_link_libraries(samples PRIVATE sycl-math)
