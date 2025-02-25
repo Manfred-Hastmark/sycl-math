@@ -5,29 +5,23 @@ Math library implemented using SYCL
 
 Make sure to have acpp in path, then run the following commands to build:
 
-### Generic target (recommended)
-
 ```bash
 $ mkdir -v build
 $ cd build
-$ cmake -DCMAKE_BUILD_TYPE=Release ..
+$ cmake -DCMAKE_BUILD_TYPE=Release [SMATH_BUILD_TESTS=<ON/OFF> SMATH_BUILD_SAMPLES=<ON/OFF> SMATH_BUILD_OMP=<ON/OFF>] ..
 $ make
 ```
-
-### OMP target
-
+### Builds units tests
 ```bash
-$ mkdir -v build
-$ cd build
-$ cmake -DCMAKE_BUILD_TYPE=Release -DTARGET_OMP=ON ..
-$ make
+SMATH_BUILD_TESTS
 ```
 
-### With unit-tests
-
+### Build samples
 ```bash
-$ mkdir -v build
-$ cd build
-$ cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_TEST=ON ..
-$ make
+SMATH_BUILD_SAMPLES
+```
+
+### OMP backend instead of generic
+```
+SMATH_BUILD_OMP
 ```
