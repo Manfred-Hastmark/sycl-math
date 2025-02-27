@@ -10,24 +10,6 @@ Make sure to have acpp in path, then run the following commands to build:
 ```bash
 $ mkdir -v build
 $ cd build
-$ cmake -DCMAKE_BUILD_TYPE=Release ..
-$ make
-```
-
-### OMP target
-
-```bash
-$ mkdir -v build
-$ cd build
-$ cmake -DCMAKE_BUILD_TYPE=Release -DTARGET_OMP=ON ..
-$ make
-```
-
-### With unit-tests
-
-```bash
-$ mkdir -v build
-$ cd build
-$ cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_TEST=ON ..
+$ cmake -DCMAKE_BUILD_TYPE=Release [-DSMATH_BUILD_TESTS=<ON/OFF> -DSMATH_BUILD_SAMPLES=<ON/OFF> -DSMATH_BUILD_OMP=<ON/OFF>] ..
 $ make
 ```

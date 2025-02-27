@@ -79,6 +79,19 @@ void sub(const smath::Matrix<T, M, N> &mat_a,
 }
 
 /**
+ * Transposes matrix
+ */
+template <typename T, size_t M, size_t N>
+void transpose(const smath::Matrix<T, M, N> &mat_a,
+               smath::Matrix<T, N, M> &mat_out) {
+  for (size_t m_idx = 0; m_idx < M; m_idx++) {
+    for (size_t n_idx = 0; n_idx < N; n_idx++) {
+      mat_out.set(n_idx, m_idx, mat_a.get(m_idx, n_idx));
+    }
+  }
+}
+
+/**
  * Scalar multiplication
  */
 template <typename T, size_t M, size_t N>
@@ -132,7 +145,6 @@ std::string mat_to_string(const smath::Matrix<T, M, N> &mat) {
   }
   return oss.str();
 }
-
 } // namespace
 
 TEST(TestMatrix, multiplication) {
@@ -383,6 +395,45 @@ TEST(TestMatrix, scalarMul) {
         << val << "\nTruth:\n"
         << mat_to_string(mat_c) << "\nReceived:\n"
         << mat_to_string(calc_c);
+
+    if (i % REPORT_EVERY == 0 && i != 0) {
+      GTEST_LOG_(INFO) << i
+                       << " cases passed... "
+                          "Avg time = "
+                       << avg_time_us << "us";
+    }
+  }
+}
+
+TEST(TestMatrix, transpose) {
+  auto queue = sycl::queue{};
+  smath::Matrix<float, DIM_M, DIM_N> mat_a{&queue};
+  smath::Matrix<float, DIM_N, DIM_M> truth_trans{&queue};
+
+  GTEST_LOG_(INFO) << "Starting matrix transpose test case";
+  GTEST_LOG_(INFO) << "Running " << NO_TEST_CASES << " cases...";
+  double avg_time_us = 0.0;
+  for (uint32_t i = 0; i < NO_TEST_CASES; i++) {
+    init(mat_a);
+
+    transpose(mat_a, truth_trans);
+
+    auto start = std::chrono::high_resolution_clock::now();
+    auto test_trans = mat_a.transpose();
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::micro> duration = end - start;
+
+    if (i == 0) {
+      avg_time_us = duration.count();
+    } else {
+      avg_time_us = (avg_time_us * i + duration.count()) / i;
+    }
+
+    ASSERT_TRUE(compare(test_trans, truth_trans))
+        << "Matrix A:\n"
+        << mat_to_string(mat_a) << "\nCorrect:\n"
+        << mat_to_string(truth_trans) << "\nReceived:\n"
+        << mat_to_string(test_trans);
 
     if (i % REPORT_EVERY == 0 && i != 0) {
       GTEST_LOG_(INFO) << i

@@ -28,6 +28,10 @@ if(SMATH_BUILD_OMP)
     add_compile_options(--acpp-targets=omp -fopenmp=libgomp)
 endif()
 
+if(SMATH_BUILD_TESTS)
+    enable_testing()
+endif()
+
 # SYCL math library
 add_library(sycl-math INTERFACE)
 set_target_properties(sycl-math PROPERTIES CMAKE_CXX_STANDARD 17)

@@ -218,6 +218,23 @@ public:
         .wait();
   }
 
+  /**
+   * Matrix transpose, allocates new memory
+   */
+  Matrix<T, N, M> transpose() const {
+    Matrix<T, N, M> out_mat{m_queue};
+    const auto *mat_a = m_matrix;
+    auto *mat_b = out_mat.data();
+    m_queue
+        ->submit([&](sycl::handler &cgh) {
+          cgh.parallel_for(sycl::range<2>{M, N}, [=](sycl::id<2> idx) {
+            mat_b[(idx[1] * M) + idx[0]] = mat_a[(idx[0] * N) + idx[1]];
+          });
+        })
+        .wait();
+    return out_mat;
+  }
+
 private:
   sycl::queue *m_queue;
   T *m_matrix;
